@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var taskGroups = TaskGroup.sampleData // See MockData
+	@State private var taskGroups: [TaskGroup] = []
     @State private var selectedGroup: TaskGroup? // selected group
     @State private var columnVisibility: NavigationSplitViewVisibility = .all // navigation side panel
 	@State private var isShowingAddGroup: Bool = false
+	@Environment(\.scenePhase) private var scenePhase
+	let saveKey = "taskGroupsData"
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -48,5 +50,39 @@ struct ContentView: View {
 				selectedGroup = NewGroup
 			}
 		}
+		.onAppear {
+			loadData()
+		}
+		.onChange(of: scenePhase) { oldValue, newValue in
+			if newValue == .active {
+				print("App is Active")
+			} else if newValue == .inactive {
+				print("App us Inactive")
+			} else if newValue == .background {
+				print("Data is baing saved")
+				saveData()
+			}
+		}
     }
+	
+	// MARK: - Data Persistance
+	func saveData() {
+		if let encodedData = try? JSONEncoder().encode(taskGroups) {
+			// Save it in User Defaults
+			UserDefaults.standard.set(encodedData, forKey: saveKey)
+		}
+	}
+	
+	func loadData() {
+		if let saveData = UserDefaults.standard.data(forKey: saveKey) {
+			if let decodedGroups = try? JSONDecoder().decode([TaskGroup].self, from: saveData) {
+				taskGroups = decodedGroups
+				return
+			}
+		}
+		
+		// if no data use mock data
+		taskGroups = TaskGroup.sampleData
+		
+	}
 }

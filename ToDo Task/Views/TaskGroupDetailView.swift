@@ -10,9 +10,20 @@ import SwiftUI
 
 struct TaskGroupDetailView: View {
     @Binding var groups: TaskGroup
+	@Environment(\.horizontalSizeClass) var sizeClass
+	
     
     var body: some View {
+		// MARK: -  Size Class 
         List {
+			Section {
+				if sizeClass == .regular {
+					GroupStatsView(tasks: groups.tasks)
+						.listRowInsets(EdgeInsets())
+						.listRowBackground(Color(.systemGroupedBackground))
+				}
+			}
+			
             ForEach($groups.tasks) { $task in
                 HStack {
                     Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
