@@ -11,7 +11,7 @@ import SwiftUI
 struct ToDo_TaskApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DashboardView()
         }
     }
 }
