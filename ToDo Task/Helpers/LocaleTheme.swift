@@ -15,19 +15,87 @@ struct LocaleTheme {
 		Locale.current.language.languageCode?.identifier == "ar"
 	}
 
-	/// Accent color: gold for Arabic, cyan for default
+	// MARK: - Core Colors
+
+	/// Primary accent color
 	static var accentColor: Color {
-		isArabic ? Color("ArabicGold") : .cyan
+		isArabic ? Color("ArabicGold") : Color(red: 0.35, green: 0.45, blue: 0.98) // Soft indigo
 	}
 
-	/// Background color: warm sand for Arabic, system default for others
+	/// Secondary accent for highlights and details
+	static var secondaryAccent: Color {
+		isArabic ? Color("ArabicGold").opacity(0.7) : Color(red: 1.0, green: 0.55, blue: 0.38) // Warm coral
+	}
+
+	/// Success/completion color
+	static var successColor: Color {
+		Color(red: 0.30, green: 0.78, blue: 0.55) // Fresh green
+	}
+
+	/// Background color
 	static var backgroundColor: Color {
 		isArabic ? Color("ArabicSand") : Color(.systemGroupedBackground)
 	}
 
-	/// Secondary background for Arabic theme
+	/// Secondary background for cards
 	static var secondaryBackground: Color {
 		isArabic ? Color("ArabicSand").opacity(0.5) : Color(.secondarySystemBackground)
+	}
+
+	// MARK: - Category Colors (for sidebar icons and cards)
+
+	static let categoryColors: [Color] = [
+		Color(red: 0.35, green: 0.45, blue: 0.98), // Indigo
+		Color(red: 1.0, green: 0.55, blue: 0.38),  // Coral
+		Color(red: 0.30, green: 0.78, blue: 0.55),  // Green
+		Color(red: 0.95, green: 0.65, blue: 0.20),  // Amber
+		Color(red: 0.75, green: 0.38, blue: 0.95),  // Purple
+		Color(red: 0.25, green: 0.75, blue: 0.85),  // Teal
+		Color(red: 0.95, green: 0.40, blue: 0.50),  // Rose
+		Color(red: 0.55, green: 0.65, blue: 0.30),  // Olive
+	]
+
+	/// Get a consistent color for an index (cycles through palette)
+	static func colorFor(index: Int) -> Color {
+		categoryColors[index % categoryColors.count]
+	}
+
+	// MARK: - Gradients
+
+	/// Primary gradient for headers and prominent elements
+	static var primaryGradient: LinearGradient {
+		LinearGradient(
+			colors: [
+				Color(red: 0.35, green: 0.45, blue: 0.98),
+				Color(red: 0.55, green: 0.40, blue: 0.95)
+			],
+			startPoint: .topLeading,
+			endPoint: .bottomTrailing
+		)
+	}
+
+	/// Warm gradient for profile cards
+	static var warmGradient: LinearGradient {
+		LinearGradient(
+			colors: [
+				Color(red: 1.0, green: 0.55, blue: 0.38),
+				Color(red: 0.95, green: 0.40, blue: 0.50)
+			],
+			startPoint: .topLeading,
+			endPoint: .bottomTrailing
+		)
+	}
+
+	/// Progress ring gradient
+	static var progressGradient: AngularGradient {
+		AngularGradient(
+			colors: [
+				Color(red: 0.35, green: 0.45, blue: 0.98),
+				Color(red: 0.30, green: 0.78, blue: 0.55),
+				Color(red: 0.35, green: 0.45, blue: 0.98)
+			],
+			center: .center
+		)
 	}
 }
 
