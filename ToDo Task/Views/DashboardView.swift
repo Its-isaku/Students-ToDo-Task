@@ -22,6 +22,13 @@ struct DashboardView: View {
 	var body: some View {
 		NavigationStack(path: $path) {
 			ZStack {
+				// MARK: - Locale-Specific Background (Task 3: Arabic Theme)
+				LocaleTheme.backgroundColor
+					.ignoresSafeArea()
+				if LocaleTheme.isArabic {
+					ArabicPatternBackground()
+						.ignoresSafeArea()
+				}
 				ScrollView {
 					VStack(spacing: 40) {
 						Text("welcome Back")

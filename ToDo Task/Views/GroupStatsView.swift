@@ -23,7 +23,7 @@ struct GroupStatsView: View {
 				Circle()
 					.trim(from: 0.0, to: CGFloat(progress))
 					.stroke(style: StrokeStyle(lineWidth: 10, lineCap: .round))
-					.foregroundColor(.cyan)
+					.foregroundColor(LocaleTheme.accentColor)
 					.rotationEffect(Angle(degrees: -90))
 				Text("\(Int(progress * 100))%")
 					.font(.caption)
@@ -39,6 +39,6 @@ struct GroupStatsView: View {
 			Spacer()
 		}
 		.padding()
-		.background(Color(.secondarySystemBackground))
+		.background(LocaleTheme.secondaryBackground)
     }
 }

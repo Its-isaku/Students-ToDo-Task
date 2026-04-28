@@ -27,7 +27,7 @@ struct TaskGroupDetailView: View {
             ForEach($groups.tasks) { $task in
                 HStack {
                     Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(task.isCompleted ? .cyan : .gray)
+                        .foregroundStyle(task.isCompleted ? LocaleTheme.accentColor : .gray)
                         .onTapGesture {
                             withAnimation {
                                 task.isCompleted.toggle()
