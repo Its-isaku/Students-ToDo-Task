@@ -9,33 +9,128 @@ import XCTest
 
 final class ToDo_TaskUITests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+	let app = XCUIApplication()
 
-        // In UI tests it is usually best to stop immediately when a failure occurs.
-        continueAfterFailure = false
+	override func setUpWithError() throws {
+		continueAfterFailure = false
+		// Default to English so we don't have to set it in every test
+		app.launchArguments = ["-AppleLanguages", "(en)"]
+	}
 
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
+	// MARK: - Launch Language Tests
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+	@MainActor
+	func testLaunchEnglish() {
+		app.launch()
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+		// Verify the welcome subtitle is visible on the dashboard
+		let header = app.staticTexts["welcomeSubtitle"]
+		XCTAssertTrue(header.exists, "Welcome subtitle should be visible when launching in English")
+	}
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
+	@MainActor
+	func testLaunchSpanish() {
+		app.launchArguments = ["-AppleLanguages", "(es-419)"]
+		app.launch()
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
-    }
+		// Verify the dashboard still loads correctly in Spanish
+		let header = app.staticTexts["welcomeSubtitle"]
+		XCTAssertTrue(header.exists, "Welcome subtitle should be visible when launching in Spanish")
+	}
+
+	// MARK: - Dashboard Tests
+
+	@MainActor
+	func testDashboardProfileCardsExist() {
+		app.launch()
+
+		let professorCard = app.buttons["profileCard_Professor"]
+		let studentCard = app.buttons["profileCard_Student"]
+
+		XCTAssertTrue(professorCard.exists, "Professor profile card should exist")
+		XCTAssertTrue(studentCard.exists, "Student profile card should exist")
+	}
+
+	@MainActor
+	func testNavigateToProfileTasks() {
+		app.launch()
+
+		let professorCard = app.buttons["profileCard_Professor"]
+		XCTAssertTrue(professorCard.exists, "Professor card should exist on the dashboard")
+		professorCard.tap()
+
+		// The add group button in the toolbar confirms we are inside the profile task view
+		let addButton = app.buttons["addGroupButton"]
+		XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add group button should appear after navigating into a profile")
+	}
+
+	// MARK: - Add Group Tests
+
+	@MainActor
+	func testAddGroupButtonExists() {
+		app.launch()
+
+		let professorCard = app.buttons["profileCard_Professor"]
+		professorCard.tap()
+
+		let addButton = app.buttons["addGroupButton"]
+		XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add group button should exist in the toolbar")
+	}
+
+	@MainActor
+	func testAddGroupFlow() {
+		app.launch()
+
+		let professorCard = app.buttons["profileCard_Professor"]
+		professorCard.tap()
+
+		// Open the new group form
+		let addButton = app.buttons["addGroupButton"]
+		XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add group button should exist")
+		addButton.tap()
+
+		// Verify the sheet opened by checking its navigation bar title
+		let sheetNavBar = app.navigationBars["New Group"]
+		XCTAssertTrue(sheetNavBar.waitForExistence(timeout: 5), "New Group sheet should appear after tapping add")
+
+		// Type a group name
+		let nameField = app.textFields["groupNameTextField"]
+		XCTAssertTrue(nameField.waitForExistence(timeout: 3), "Group name text field should exist")
+		nameField.tap()
+		nameField.typeText("My Test Group")
+
+		// Select the star icon
+		let iconOption = app.images["iconOption_star.fill"].firstMatch
+		if iconOption.waitForExistence(timeout: 2) {
+			iconOption.tap()
+		}
+
+		// Save the new group
+		let saveButton = app.buttons["saveButton"]
+		XCTAssertTrue(saveButton.waitForExistence(timeout: 2), "Save button should exist")
+		saveButton.tap()
+
+		// Verify the new group appears in the sidebar
+		let newGroup = app.buttons["sidebarGroup_My Test Group"].firstMatch
+		XCTAssertTrue(newGroup.waitForExistence(timeout: 5), "Newly created group should appear in the sidebar")
+	}
+
+	// MARK: - Back Navigation Test
+
+	@MainActor
+	func testBackButtonReturnsToProfiles() {
+		app.launch()
+
+		let professorCard = app.buttons["profileCard_Professor"]
+		professorCard.tap()
+
+		// Tap the custom back button to return to the dashboard
+		let backButton = app.buttons["backButton"]
+		XCTAssertTrue(backButton.waitForExistence(timeout: 5), "Back button should exist in the toolbar")
+		backButton.tap()
+
+		// Verify the dashboard welcome title is visible again
+		let welcomeTitle = app.staticTexts["welcomeTitle"]
+		XCTAssertTrue(welcomeTitle.waitForExistence(timeout: 5), "Should return to dashboard with welcome title visible")
+	}
 }
