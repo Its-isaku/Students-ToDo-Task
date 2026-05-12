@@ -34,12 +34,22 @@ struct ToDo_TaskTests {
 
     // MARK: - TaskItem Priority Tests
 
+    // TDD Step 1 (Red): write this test first — it fails because priority doesn't exist yet
+    // TDD Step 2 (Green): add `var priority: Priority` to TaskItem and it passes
+    // TDD Step 3 (Refactor): default to .medium so existing tasks are not broken
     @Test func taskItemHasDefaultPriority() {
         let task = TaskItem(title: "Test Task")
         #expect(task.priority == .medium)
     }
 
-    @Test func taskItemCanSetPriority() {
+    // Equivalent to the exercise's testTaskHasPriority — mutating priority after creation
+    @Test func taskItemCanChangePriorityAfterCreation() {
+        var task = TaskItem(title: "Complete Homework")
+        task.priority = .high
+        #expect(task.priority == .high)
+    }
+
+    @Test func taskItemCanSetPriorityAtInit() {
         let task = TaskItem(title: "Urgent", priority: .high)
         #expect(task.priority == .high)
     }
@@ -50,5 +60,47 @@ struct ToDo_TaskTests {
         let decoded = try JSONDecoder().decode(TaskItem.self, from: data)
         #expect(decoded.title == original.title)
         #expect(decoded.priority == .high)
+    }
+
+    // MARK: - Priority Display Tests
+
+    @Test func priorityHasCorrectLabels() {
+        #expect(Priority.high.label == "High")
+        #expect(Priority.medium.label == "Medium")
+        #expect(Priority.low.label == "Low")
+    }
+
+    // MARK: - TaskGroup Sort Tests
+
+    // TDD Step 1 (Red): write this before implementing sortByPriority()
+    // TDD Step 2 (Green): add sortByPriority(ascending:) to TaskGroup
+    @Test func taskGroupSortsHighToLow() {
+        var group = TaskGroup(title: "Test", symbolName: "star.fill", tasks: [
+            TaskItem(title: "Low task", priority: .low),
+            TaskItem(title: "High task", priority: .high),
+            TaskItem(title: "Medium task", priority: .medium)
+        ])
+        group.sortByPriority(ascending: true)
+        #expect(group.tasks[0].priority == .high)
+        #expect(group.tasks[1].priority == .medium)
+        #expect(group.tasks[2].priority == .low)
+    }
+
+    @Test func taskGroupSortsLowToHigh() {
+        var group = TaskGroup(title: "Test", symbolName: "star.fill", tasks: [
+            TaskItem(title: "Low task", priority: .low),
+            TaskItem(title: "High task", priority: .high),
+            TaskItem(title: "Medium task", priority: .medium)
+        ])
+        group.sortByPriority(ascending: false)
+        #expect(group.tasks[0].priority == .low)
+        #expect(group.tasks[1].priority == .medium)
+        #expect(group.tasks[2].priority == .high)
+    }
+
+    @Test func sortingEmptyGroupDoesNotCrash() {
+        var group = TaskGroup(title: "Empty", symbolName: "star.fill", tasks: [])
+        group.sortByPriority(ascending: true)
+        #expect(group.tasks.isEmpty)
     }
 }
