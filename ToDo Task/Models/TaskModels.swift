@@ -44,6 +44,12 @@ struct TaskItem: Identifiable, Hashable, Codable {
     var isCompleted: Bool = false
     var priority: Priority = .medium
     var dueDate: Date? = nil
+
+    /// A task is overdue when it has a due date strictly before today and is not yet completed.
+    var isOverdue: Bool {
+        guard let dueDate, !isCompleted else { return false }
+        return dueDate < Calendar.current.startOfDay(for: .now)
+    }
 }
 
 struct TaskGroup: Identifiable, Hashable, Codable {

@@ -63,8 +63,7 @@ struct TaskGroupDetailView: View {
 						// Due date chip — tap to edit, long-press to remove
 						HStack {
 							if let dueDate = task.dueDate {
-								let overdue = dueDate < Calendar.current.startOfDay(for: .now) && !task.isCompleted
-								let color: Color = task.isCompleted ? .secondary : (overdue ? .red : LocaleTheme.accentColor)
+								let color: Color = task.isCompleted ? .secondary : (task.isOverdue ? .red : LocaleTheme.accentColor)
 								Label(dueDate.formatted(.dateTime.month(.abbreviated).day()), systemImage: "calendar")
 									.font(.system(.caption2, design: .rounded).weight(.semibold))
 									.padding(.horizontal, 9).padding(.vertical, 4)
