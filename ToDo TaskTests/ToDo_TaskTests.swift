@@ -11,6 +11,18 @@ import Testing
 
 struct ToDo_TaskTests {
 
+    //MARK: New functionality to add a Due Date to my tasks
+    @Test("Verify that the TaskItem can store and retrieve a due date")
+    func testTaskItemDueDate() {
+        // AAA: Arrange, Act and Assert
+        // Given, When, Then
+
+        let testDate = Date(timeIntervalSince1970: 1735689600)
+        let task = TaskItem(title: "Create Test due Date", dueDate: testDate)
+
+        #expect(task.dueDate == testDate)
+    }
+
     // MARK: - Priority Enum Tests
 
     @Test func priorityHasThreeCases() {

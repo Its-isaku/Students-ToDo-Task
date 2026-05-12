@@ -43,6 +43,7 @@ struct TaskItem: Identifiable, Hashable, Codable {
     var title: String
     var isCompleted: Bool = false
     var priority: Priority = .medium
+    var dueDate: Date? = nil
 }
 
 struct TaskGroup: Identifiable, Hashable, Codable {
