@@ -94,7 +94,6 @@ struct TaskGroupDetailView: View {
 						.padding(.leading, 36)
 					}
 					.padding(.vertical, 4)
-					.accessibilityIdentifier("taskRow_\(task.id)")
 				}
 				.onDelete { groups.tasks.remove(atOffsets: $0) }
 			} header: {

@@ -115,6 +115,42 @@ final class ToDo_TaskUITests: XCTestCase {
 		XCTAssertTrue(newGroup.waitForExistence(timeout: 5), "Newly created group should appear in the sidebar")
 	}
 
+	// MARK: - Add Task Flow
+
+	@MainActor
+	func testAddingTask() {
+		app.launch()
+
+		// Dashboard → Professor profile
+		app.buttons["profileCard_Professor"].tap()
+
+		// Open an existing sample group ("Groceries") to reach the task list
+		let groceries = app.buttons["sidebarGroup_Groceries"].firstMatch
+		XCTAssertTrue(groceries.waitForExistence(timeout: 5), "Groceries group should be visible in the sidebar")
+		groceries.tap()
+
+		// Tap the toolbar "+" to append a new empty task
+		let addTaskButton = app.buttons["addTaskButton"]
+		XCTAssertTrue(addTaskButton.waitForExistence(timeout: 5), "Add task button should exist in the toolbar")
+
+		let taskFieldsQuery = app.textFields.matching(NSPredicate(format: "identifier BEGINSWITH 'taskTextField_'"))
+		let initialCount = taskFieldsQuery.count
+		addTaskButton.tap()
+
+		// Wait for the new row to appear (count increases by one)
+		let newRowAppeared = expectation(for: NSPredicate(format: "count == %d", initialCount + 1),
+		                                evaluatedWith: taskFieldsQuery)
+		wait(for: [newRowAppeared], timeout: 5)
+
+		// Type into the newest field (last one in the list)
+		let newField = taskFieldsQuery.element(boundBy: initialCount)
+		newField.tap()
+		newField.typeText("Complete Assignment")
+
+		// The field's value reflects what we typed
+		XCTAssertEqual(newField.value as? String, "Complete Assignment")
+	}
+
 	// MARK: - Back Navigation Test
 
 	@MainActor
