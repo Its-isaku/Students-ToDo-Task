@@ -22,27 +22,33 @@ jobs:
 
       - name: Pick latest iOS + newest iPhone simulator
         run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 <<'EOF'
-          import json, sys, re
-          data = json.load(sys.stdin)["devices"]
-          # Keep only iOS runtimes, sorted by version (newest first)
+          set -e
+          xcrun simctl list devices available -j > /tmp/devices.json
+          SELECTION=$(python3 - <<'PYEOF'
+          import json, re
+          with open("/tmp/devices.json") as f:
+              data = json.load(f)["devices"]
           ios = sorted(
               [(rt, devs) for rt, devs in data.items() if "iOS" in rt and devs],
               key=lambda kv: [int(n) for n in re.findall(r"\d+", kv[0])],
               reverse=True,
           )
+          if not ios:
+              raise SystemExit("No iOS runtimes available on this runner")
           latest_rt, devs = ios[0]
-          # From the newest iOS, pick the highest-numbered iPhone (Pro Max > Pro > plain)
-          rank = lambda n: (
-              int((re.search(r"iPhone (\d+)", n) or re.search(r"(\d+)", n)).group(1) or 0),
-              "Pro Max" in n, "Pro" in n, "Plus" in n,
+          def rank(name):
+              m = re.search(r"iPhone\s+(\d+)", name)
+              num = int(m.group(1)) if m else 0
+              return (num, "Pro Max" in name, "Pro" in name, "Plus" in name)
+          iphones = [d for d in devs if "iPhone" in d["name"]]
+          if not iphones:
+              raise SystemExit(f"No iPhone simulators in {latest_rt}")
+          best = max(iphones, key=lambda d: rank(d["name"]))
+          print(best["udid"] + "|" + best["name"] + "|" + latest_rt)
+          PYEOF
           )
-          best = max((d for d in devs if "iPhone" in d["name"]), key=lambda d: rank(d["name"]))
-          print(f"{best['udid']}|{best['name']}|{latest_rt}")
-          EOF
-          )
-          UDID="${DEVICE_ID%%|*}"
-          REST="${DEVICE_ID#*|}"
+          UDID="${SELECTION%%|*}"
+          REST="${SELECTION#*|}"
           NAME="${REST%%|*}"
           RUNTIME="${REST#*|}"
           echo "DEVICE_ID=$UDID" >> $GITHUB_ENV
