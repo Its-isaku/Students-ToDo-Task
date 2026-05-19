@@ -8,19 +8,28 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: macos-15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select latest stable Xcode
+      - name: Select Xcode 16
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '16.2'
 
       - name: Show available simulators
         run: xcrun simctl list devices available
+
+      - name: Pre-boot simulator
+        run: |
+          DEVICE_ID=$(xcrun simctl create "CI-iPhone" "iPhone 16" || \
+                      xcrun simctl list devices available | grep "iPhone 16 (" | head -1 | grep -Eo "[0-9A-F-]{36}")
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Build and Test
         run: |
@@ -29,6 +38,6 @@ jobs:
             -project "ToDo Task.xcodeproj" \
             -scheme "ToDo Task" \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
             -configuration Debug \
-            clean test
+            clean test | xcbeautify
