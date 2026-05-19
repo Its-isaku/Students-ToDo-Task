@@ -20,16 +20,35 @@ jobs:
           xcodebuild -version
           xcrun simctl list runtimes
 
-      - name: Pick an iPhone simulator
+      - name: Pick latest iOS + newest iPhone simulator
         run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | \
-            python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; \
-            print(next(dev['udid'] for rt,devs in d.items() if 'iOS' in rt \
-            for dev in devs if 'iPhone' in dev['name']))")
-          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
-          echo "Using simulator: $DEVICE_ID"
-          xcrun simctl boot "$DEVICE_ID" || true
-          xcrun simctl bootstatus "$DEVICE_ID" -b
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 <<'EOF'
+          import json, sys, re
+          data = json.load(sys.stdin)["devices"]
+          # Keep only iOS runtimes, sorted by version (newest first)
+          ios = sorted(
+              [(rt, devs) for rt, devs in data.items() if "iOS" in rt and devs],
+              key=lambda kv: [int(n) for n in re.findall(r"\d+", kv[0])],
+              reverse=True,
+          )
+          latest_rt, devs = ios[0]
+          # From the newest iOS, pick the highest-numbered iPhone (Pro Max > Pro > plain)
+          rank = lambda n: (
+              int((re.search(r"iPhone (\d+)", n) or re.search(r"(\d+)", n)).group(1) or 0),
+              "Pro Max" in n, "Pro" in n, "Plus" in n,
+          )
+          best = max((d for d in devs if "iPhone" in d["name"]), key=lambda d: rank(d["name"]))
+          print(f"{best['udid']}|{best['name']}|{latest_rt}")
+          EOF
+          )
+          UDID="${DEVICE_ID%%|*}"
+          REST="${DEVICE_ID#*|}"
+          NAME="${REST%%|*}"
+          RUNTIME="${REST#*|}"
+          echo "DEVICE_ID=$UDID" >> $GITHUB_ENV
+          echo "Selected: $NAME on $RUNTIME ($UDID)"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
 
       - name: Build and Test
         run: |
