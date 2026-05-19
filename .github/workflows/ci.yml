@@ -20,7 +20,7 @@ jobs:
           xcodebuild -version
           xcrun simctl list runtimes
 
-      - name: Pick latest iOS + newest iPhone simulator
+      - name: Pick latest iOS + newest iPad simulator
         run: |
           set -e
           xcrun simctl list devices available -j > /tmp/devices.json
@@ -37,13 +37,18 @@ jobs:
               raise SystemExit("No iOS runtimes available on this runner")
           latest_rt, devs = ios[0]
           def rank(name):
-              m = re.search(r"iPhone\s+(\d+)", name)
-              num = int(m.group(1)) if m else 0
-              return (num, "Pro Max" in name, "Pro" in name, "Plus" in name)
-          iphones = [d for d in devs if "iPhone" in d["name"]]
-          if not iphones:
-              raise SystemExit(f"No iPhone simulators in {latest_rt}")
-          best = max(iphones, key=lambda d: rank(d["name"]))
+              m = re.search(r"\((\d+)(?:th|st|nd|rd)?\s+generation\)", name)
+              gen = int(m.group(1)) if m else 0
+              return (
+                  "Pro" in name,
+                  "Air" in name,
+                  gen,
+                  "13" in name, "12.9" in name, "11" in name,
+              )
+          ipads = [d for d in devs if "iPad" in d["name"]]
+          if not ipads:
+              raise SystemExit(f"No iPad simulators in {latest_rt}")
+          best = max(ipads, key=lambda d: rank(d["name"]))
           print(best["udid"] + "|" + best["name"] + "|" + latest_rt)
           PYEOF
           )
